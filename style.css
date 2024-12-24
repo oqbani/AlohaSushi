@@ -885,15 +885,15 @@ button {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: var(--cl-blk);
+  background-color: var(--cl-orange);
   border-radius: 0.6rem;
   color: var(--cl-wh);
   transition: all 0.4s ease;
   cursor: pointer;
 }
 .product .product-content i:hover {
-  color: var(--cl-wh);
-  background-color: var(--cl-orange);
+  color: var(--cl-orange);
+  background-color: var(--cl-wh);
 }
 .product h3 {
   color: var(--cl-wh);
@@ -980,14 +980,14 @@ button {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: var(--cl-blk);
+  background-color: var(--cl-orange);
   border-radius: 0.6rem;
   color: var(--cl-wh);
   transition: all 0.4s ease;
   cursor: pointer;
 }
 .product-details-buy i:hover {
-  background-color: var(--cl-orange);
+  background-color: var(--cl-green);
 }
 .product-details-content-top {
   display: flex;
@@ -1045,6 +1045,24 @@ button {
   background-color: greenyellow !important; /* Light gray */
 }
 /* Addons */
+.addon-check-icon {
+  display: none;
+  color: green;
+  font-size: 1.2rem;
+  margin-left: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.3s ease; 
+}
+
+.addon-field:hover .addon-check-icon {
+  display: inline-block;
+  opacity: 0.5;
+}
+
+.addon-field:checked .addon-check-icon {
+  display: block;
+  opacity: 1;
+}
 .product-addons-container {
   padding: 0 2rem;
   display: flex;
@@ -1093,6 +1111,7 @@ button {
   align-items: center;
   flex-direction: column;
   position: relative;
+  cursor: pointer;
 }
 .addon-field h4 {
   width: 100%;

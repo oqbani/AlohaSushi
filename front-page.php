@@ -14,7 +14,6 @@ get_header();
                 <div class="section-top-content">
                     <div class="section-top-text">
                         <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Magni dicta ut explicabo vel quisquam molestias libero ipsa? Illum necessitatibus cumque, animi, rerum similique deleniti deserunt itaque vero dicta, voluptate pariatur.</p>
-                        <!-- <button><i class="fa-solid fa-truck-fast"></i> ORDER NOW</button> -->
                     </div>
                     <div class="section-top-img">
                         <img class="" src="<?php echo get_template_directory_uri(); ?>/imgs/plate-4.png" alt="Sushi Image">
@@ -210,15 +209,14 @@ get_header();
 
                 if (!empty($categories)) {
                     foreach ($categories as $category) {
-                        // Get category details
+                        // category details
                         $thumbnail_id = get_term_meta($category->term_id, 'thumbnail_id', true);
                         $image_url = wp_get_attachment_url($thumbnail_id);
                         $product_count = isset($category->count) ? $category->count : 0;
 
-                        // Build the category URL with filter
+                        // filtrer
                         $category_url = add_query_arg('category', $category->slug, $menu_url);
 
-                        // Output each category as a slide
                         echo '<div class="swiper-slide">';
                         echo '<div class="category">';
                         if ($image_url) {
@@ -279,7 +277,6 @@ get_header();
     </section>
     <!-- PRODUCTS -->
     <section class="section-products container">
-        <!-- Display Products -->
         <div class="title-top">
             <h1>OUR BEST <span> DISHES</span></h1>
             <button>SEE ALL <i class="fas fa-arrow-right"></i></button>
@@ -376,7 +373,6 @@ get_header();
     <section class="section-products-dishes">
 
         <div class="wave-top"></div>
-        <!-- Display Products -->
         <div class="title-top container">
             <h1>OUR BEST <span>DISHES</span></h1>
             <button>SEE ALL <i class="fas fa-arrow-right"></i></button>
@@ -544,16 +540,14 @@ get_header();
         </div>
     </div>
 
-    <div>
-        <!-- $api_url = "http://localhost/aloha_sushi/wp-json/wc/v3/products/$product_id"; -->
-    </div>
-
     <script>
         <?php
         $rest_url = esc_url_raw(rest_url('/wc/v3/products/'));
         $consumer_key = 'ck_293896f56cc0ecddc28b4c79984c73c52a6a43e2';
         $consumer_secret = 'cs_349bd60084e10ae4acd409f011055f68bf073fec';
         ?>
+
+
 
         let cart = [];
         let cartCount = 0;
@@ -565,83 +559,228 @@ get_header();
             content.innerHTML = '<div class="product-details-loading"><p class="loader"></p></div>';
             popup.style.display = 'flex';
 
-            fetch(`<?php echo $rest_url; ?>${productId}`, {
-                    headers: {
-                        'Authorization': 'Basic ' + btoa('<?php echo $consumer_key; ?>:<?php echo $consumer_secret; ?>')
-                    }
+            const formData = new FormData();
+            formData.append('action', 'get_product_details');
+            formData.append('nonce', productAjax.nonce);
+            formData.append('product_id', productId);
+
+            fetch(productAjax.ajaxurl, {
+                    method: 'POST',
+                    body: formData
                 })
+                .then(response => response.json())
                 .then(response => {
-                    if (!response.ok) throw new Error('Network response was not ok');
-                    return response.json();
-                })
-                .then(product => {
-                    const imageSrc = product.images && product.images.length > 0 ? product.images[0].src : '';
-                    const imageAlt = product.name || 'Product Image';
+                    if (!response.success) {
+                        throw new Error(response.data);
+                    }
 
-                    content.innerHTML = `
-                <div class="product-popup-content">  
-                    <div>
-                        <img src="${imageSrc}" alt="${imageAlt}"> 
-                    </div>
-                    <div class="p-details-content">
-                        <div class="product-details-content-top">
-                            <h2>${product.name}</h2>
-                            <div class="quantity-controls">
-                                <button onclick="changeProductQuantity(${productId}, -1)">-</button>
-                                <input type="text" id="productQuantity" class="product-quantity" value="0" min="0">
-                                <button onclick="changeProductQuantity(${productId}, 1)">+</button>
-                            </div>
-                        </div> 
-                        <div class="accordion" id="accordionExample">
-                            <div class="accordion-item">
-                                <h2 class="accordion-header">
-                                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                                        DESCRIPTION
-                                    </button>
-                                </h2>
-                                <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#accordionExample">
-                                <div class="accordion-body">
-                                    <strong>${product.description} description...</strong>
+                    const product = response.data;
+
+                    content.innerHTML = `  
+                        <div class="product-popup-content">  
+                            <div class="product-image-section">  
+                                <img src="${product.image}" alt="${product.name}" class="main-product-image">
+                            </div>  
+                            
+                            <div class="p-details-content mt-3">
+                                <div class="product-details-content-top">
+                                    <h2 class="mb-3">${product.name}</h2>
+                                    <div class="quantity-controls">  
+                                        <button onclick="changeProductQuantity(${product.id}, -1)" class="quantity-btn">-</button>  
+                                        <input type="text" id="productQuantity" class="product-quantity" value="1" min="1">  
+                                        <button onclick="changeProductQuantity(${product.id}, 1)" class="quantity-btn">+</button>  
+                                    </div>  
                                 </div>
-                                </div>
-                            </div>
-                            <div class="accordion-item">
-                                <h2 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                                    Alergens
-                                </button>
-                                </h2>
-                                <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
-                                <div class="accordion-body">
-                                    <strong>ALERGANS</strong>
-                                </div>
-                                </div>
-                            </div>
+                                <div class="accordion" id="productAccordion">  
+                                    <div class="accordion-item">  
+                                        <h3 class="accordion-header">  
+                                            <button class="accordion-button" type="button" data-bs-toggle="collapse"   
+                                                    data-bs-target="#descriptionCollapse" aria-expanded="true">  
+                                                Description  
+                                            </button>  
+                                        </h3>  
+                                        <div id="descriptionCollapse" class="accordion-collapse collapse show"   
+                                            data-bs-parent="#productAccordion">  
+                                            <div class="accordion-body">  
+                                                ${product.description || product.short_description}  
+                                            </div>  
+                                        </div>  
+                                    </div>  
+            
+                                    <div class="accordion-item">  
+                                        <h3 class="accordion-header">  
+                                            <button class="accordion-button collapsed" type="button"   
+                                                    data-bs-toggle="collapse" data-bs-target="#allergenCollapse">  
+                                                Allergens  
+                                            </button>  
+                                        </h3>  
+                                        <div id="allergenCollapse" class="accordion-collapse collapse"   
+                                            data-bs-parent="#productAccordion">  
+                                            <div class="accordion-body">  
+                                                <!-- Add allergen information here -->  
+                                                <p>Allergen information will be displayed here.</p>  
+                                            </div>  
+                                        </div>  
+                                    </div>  
+                                </div>  
+            
+                                <div id="productAddonsContainer" class="product-addons-container my-3 py-3" style="border-top: .1rem solid white;border-bottom: .1rem solid white;">
+                                </div>  
+            
+                                <div class="product-details-buy">  
+                                    <div class="product-price">  
+                                        ${product.sale_price}€  
+                                    </div> 
+                                        <i class="fa-solid fa-cart-shopping" onclick="addToCart(${product.id})"></i>  
+                                </div>  
+                            </div>  
                         </div>
-                    </div>
+                    `;
 
-                    <div id="productAddonsContainer" class="product-addons-container">
-                        <p>Loading addons...</p>
-                    </div>
-
-                    <div class="product-details-buy">
-                        <div class="product-price">  
-                            <strong>${product.sale_price}€</strong>   
-                        </div> 
-                        <i class="fa-solid fa-cart-shopping add-to-cart-btn" onclick="addToCart(${product.id})"></i>
-                    </div>
-                </div>  
-            `;
-
-                    // Fetch and render addons
                     fetchProductAddons(productId);
                 })
                 .catch(error => {
-                    content.innerHTML = '<p class="mt-5">Error loading product details. Please try again.</p>';
+                    content.innerHTML = `  
+                        <div class="error-message">  
+                            <p>Error loading product details. Please try again.</p>  
+                            <button onclick="closeProductDetails()" class="close-error-btn">Close</button>  
+                        </div>  
+                    `;
                     console.error('Error:', error);
                 });
         }
 
+
+
+        // function fetchProductAddons(productId) {
+        //     const addonsContainer = document.getElementById('productAddonsContainer');
+
+        //     fetch(`/aloha_sushi/wp-json/custom/v1/product-addons/${productId}`)
+        //         .then(response => {
+        //             if (!response.ok) throw new Error('Failed to fetch addons');
+        //             return response.json();
+        //         })
+        //         .then(addons => {
+        //             if (addons.length === 0) {
+        //                 addonsContainer.innerHTML = '<p>No addons available for this product.</p>';
+        //                 return;
+        //             }
+
+        //             addonsContainer.innerHTML = addons.map(addon => `
+        //         <div class="addon-group">
+        //             <h4>${addon.group_title}</h4>
+        //             ${addon.fields.map(field => `
+        //                 <div class="addon-field"> 
+        //                     <div class="addon-content">
+        //                         ${field.type === 'radio' ? `
+        //                             ${field.options.map(option => `
+        //                                 <div class="addon-option">
+        //                                     <label>
+        //                                         ${option.image ? `<img src="${option.image}" alt="${option.label}" class="addon-image">` : ''}
+        //                                         ${option.label} (+${option.price}€)
+        //                                     </label>
+        //                                     <input type="radio" name="addon_${field.id}" value="${option.id}">
+        //                                 </div>
+        //                             `).join('')}
+        //                         ` : ''}
+        //                         ${field.type === 'checkbox' ? `
+        //                             ${field.options.map(option => `
+        //                                 <div class="addon-option">
+        //                                     <label class="checkbox-label">
+        //                                         ${option.image ? `<img src="${option.image}" alt="${option.label}" class="addon-image">` : ''}
+
+        //                                         ${option.label} / +${option.price}€
+        //                                     </label>
+        //                                     <input type="checkbox" class="custom-checkbox" name="addon_${field.id}[]" value="${option.id}">
+        //                                 </div>
+        //                             `).join('')}
+        //                         ` : ''}
+        //                         ${field.type === 'select' ? `
+        //                             <select name="addon_${field.id}">
+        //                                 ${field.options.map(option => `
+        //                                     <option value="${option.id}">
+        //                                         ${option.label} (+${option.price}€)
+        //                                     </option>
+        //                                 `).join('')}
+        //                             </select>
+        //                         ` : ''}
+        //                     </div>
+        //                 </div>
+        //             `).join('')}
+        //         </div>
+        //     `).join('');
+        //         })
+        //         .catch(error => {
+        //             addonsContainer.innerHTML = '<p>Error loading addons. Please try again.</p>';
+        //             console.error('Error:', error);
+        //         });
+        // }
+
+        // function fetchProductAddons(productId) {
+        //     const addonsContainer = document.getElementById('productAddonsContainer');
+
+        //     fetch(`/aloha_sushi/wp-json/custom/v1/product-addons/${productId}`)
+        //         .then(response => {
+        //             if (!response.ok) throw new Error('Failed to fetch addons');
+        //             return response.json();
+        //         })
+        //         .then(addons => {
+        //             if (addons.length === 0) {
+        //                 addonsContainer.innerHTML = '<p>No addons available for this product.</p>';
+        //                 return;
+        //             }
+
+        //             addonsContainer.innerHTML = addons.map(addon => `
+        //                     <div class="addon-group">
+        //                         <h4>${addon.group_title}</h4>
+        //                         ${addon.fields.map(field => `
+        //                             <div class="addon-field" onclick="toggleAddonField(this)">
+        //                                 <div class="addon-content">
+        //                                     ${field.type === 'radio' ? `
+        //                                         ${field.options.map(option => `
+        //                                             <div class="addon-option">
+        //                                                 <label>
+        //                                                     ${option.image ? `<img src="${option.image}" alt="${option.label}" class="addon-image">` : ''}
+        //                                                     ${option.label} (+${option.price}€)
+        //                                                 </label>
+        //                                                 <input type="radio" name="addon_${field.id}" value="${option.id}" style="display: none;">
+        //                                                 <i class="fa-solid fa-check addon-check-icon" style="display: none;"></i>
+        //                                             </div>
+        //                                         `).join('')}
+        //                                     ` : ''}
+        //                                     ${field.type === 'checkbox' ? `
+        //                                         ${field.options.map(option => `
+        //                                             <div class="addon-option">
+        //                                                 <label>
+        //                                                     ${option.image ? `<img src="${option.image}" alt="${option.label}" class="addon-image">` : ''}
+        //                                                     ${option.label} (+${option.price}€)
+        //                                                 </label>
+        //                                                 <input type="checkbox" name="addon_${field.id}[]" value="${option.id}" style="display: none;">
+        //                                                 <i class="fa fa-check addon-check-icon" style="display: block;"></i>
+        //                                             </div>
+        //                                         `).join('')}
+        //                                     ` : ''}
+        //                                     ${field.type === 'select' ? `
+        //                                         <select name="addon_${field.id}">
+        //                                             ${field.options.map(option => `
+        //                                                 <option value="${option.id}">
+        //                                                     ${option.label} (+${option.price}€)
+        //                                                     <i class="fa fa-check addon-check-icon" style="display: block;"></i>
+        //                                                 </option>
+        //                                             `).join('')}
+        //                                         </select>
+        //                                     ` : ''}
+        //                                 </div>
+        //                             </div>
+        //                         `).join('')}
+        //                     </div>
+        //                 `).join('');
+        //             })
+        //         .catch(error => {
+        //             addonsContainer.innerHTML = '<p>Error loading addons. Please try again.</p>';
+        //             console.error('Error:', error);
+        //         });
+        // }
 
         function fetchProductAddons(productId) {
             const addonsContainer = document.getElementById('productAddonsContainer');
@@ -661,7 +800,7 @@ get_header();
                 <div class="addon-group">
                     <h4>${addon.group_title}</h4>
                     ${addon.fields.map(field => `
-                        <div class="addon-field"> 
+                        <div class="addon-field" onclick="toggleAddonField(this)">
                             <div class="addon-content">
                                 ${field.type === 'radio' ? `
                                     ${field.options.map(option => `
@@ -670,19 +809,20 @@ get_header();
                                                 ${option.image ? `<img src="${option.image}" alt="${option.label}" class="addon-image">` : ''}
                                                 ${option.label} (+${option.price}€)
                                             </label>
-                                            <input type="radio" name="addon_${field.id}" value="${option.id}">
+                                            <input type="radio" name="addon_${field.id}" value="${option.id}" style="display: none;">
+                                            <i class="fa-solid fa-check addon-check-icon"></i>
                                         </div>
                                     `).join('')}
                                 ` : ''}
                                 ${field.type === 'checkbox' ? `
                                     ${field.options.map(option => `
                                         <div class="addon-option">
-                                            <label class="checkbox-label">
+                                            <label>
                                                 ${option.image ? `<img src="${option.image}" alt="${option.label}" class="addon-image">` : ''}
-                                                
-                                                ${option.label} / +${option.price}€
+                                                ${option.label} (+${option.price}€)
                                             </label>
-                                            <input type="checkbox" class="custom-checkbox" name="addon_${field.id}[]" value="${option.id}">
+                                            <input type="checkbox" name="addon_${field.id}[]" value="${option.id}" style="display: none;">
+                                            <i class="fa-solid fa-check addon-check-icon"></i>
                                         </div>
                                     `).join('')}
                                 ` : ''}
@@ -708,6 +848,33 @@ get_header();
         }
 
 
+        function toggleAddonField(addonField) {
+            const input = addonField.querySelector('input');
+            const checkIcon = addonField.querySelector('.addon-check-icon');
+
+            if (input.type === 'radio') {
+                const groupName = input.name;
+                const allOptions = document.querySelectorAll(`input[name="${groupName}"]`);
+                allOptions.forEach(option => {
+                    const parentField = option.closest('.addon-field');
+                    const icon = parentField.querySelector('.addon-check-icon');
+                    option.checked = false;
+                    if (icon) icon.classList.remove('active');
+                });
+
+                input.checked = true;
+                checkIcon.classList.add('active');
+            } else if (input.type === 'checkbox') {
+                input.checked = !input.checked;
+                if (input.checked) {
+                    checkIcon.classList.add('active');
+                } else {
+                    checkIcon.classList.remove('active');
+                }
+            }
+        }
+
+
         function closeProductDetails() {
             document.getElementById('productDetailsPopup').style.display = 'none';
         }
@@ -715,81 +882,134 @@ get_header();
         function changeProductQuantity(productId, delta) {
             const quantityInput = document.getElementById('productQuantity');
             let newQuantity = parseInt(quantityInput.value) + delta;
-            if (newQuantity < 1) newQuantity = 1; // Ensure quantity stays positive
+            if (newQuantity < 1) newQuantity = 1; // la valeur est positive
             quantityInput.value = newQuantity;
         }
 
         function addToCart(productId) {
             const quantityInput = document.getElementById('productQuantity');
-            const quantity = parseInt(quantityInput.value) || 1; // Default to 1 if input is invalid
+            const quantity = parseInt(quantityInput.value) || 1;
 
-            // Fetch product details again to get the latest data
-            fetch(`<?php echo $rest_url; ?>${productId}`, {
-                    headers: {
-                        'Authorization': 'Basic ' + btoa('<?php echo $consumer_key; ?>:<?php echo $consumer_secret; ?>')
-                    }
-                })
-                .then(response => response.json())
-                .then(product => {
-                    const productName = product.name;
-                    const productPrice = parseFloat(product.sale_price);
-                    const productImage = product.images && product.images.length > 0 ? product.images[0].src : '';
+            const selectedAddons = [];
+            const addonContainer = document.getElementById('productAddonsContainer');
 
-                    // Check if the product already exists in the cart
-                    const existingProduct = cart.find(item => item.id === productId);
-                    if (existingProduct) {
-                        existingProduct.quantity += quantity;
-                    } else {
-                        cart.push({
-                            id: productId,
-                            name: productName,
-                            price: productPrice,
-                            image: productImage,
-                            quantity: quantity,
-                        });
-                    }
-
-                    updateCartCount();
-                    updateCartDisplay();
-                    showCartPopup();
-                })
-                .catch(error => {
-                    console.error('Error adding product to cart:', error);
+            addonContainer.querySelectorAll('input[type="radio"]:checked').forEach(radio => {
+                const label = radio.closest('.addon-option').querySelector('label').textContent.trim();
+                const priceMatch = label.match(/\+(\d+\.?\d*)€/);
+                const price = priceMatch ? parseFloat(priceMatch[1]) : 0;
+                selectedAddons.push({
+                    type: 'radio',
+                    label: label.replace(/\+\d+\.?\d*€/, '').trim(),
+                    price: price
                 });
+            });
+
+            addonContainer.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
+                const label = checkbox.closest('.addon-option').querySelector('label').textContent.trim();
+                const priceMatch = label.match(/\+(\d+\.?\d*)€/);
+                const price = priceMatch ? parseFloat(priceMatch[1]) : 0;
+                selectedAddons.push({
+                    type: 'checkbox',
+                    label: label.replace(/\+\d+\.?\d*€/, '').trim(),
+                    price: price
+                });
+            });
+
+            addonContainer.querySelectorAll('select').forEach(select => {
+                if (select.value) {
+                    const selectedOption = select.options[select.selectedIndex];
+                    const label = selectedOption.textContent.trim();
+                    const priceMatch = label.match(/\+(\d+\.?\d*)€/);
+                    const price = priceMatch ? parseFloat(priceMatch[1]) : 0;
+                    selectedAddons.push({
+                        type: 'select',
+                        label: label.replace(/\+\d+\.?\d*€/, '').trim(),
+                        price: price
+                    });
+                }
+            });
+
+            const productName = document.querySelector('.product-popup-content h2').textContent;
+            const productPriceText = document.querySelector('.product-price').textContent.trim();
+            const productPrice = parseFloat(productPriceText.replace(/[^0-9.]/g, '').replace(',', '.'));
+            if (isNaN(productPrice)) {
+                console.error('Invalid product price:', productPriceText);
+                return;
+            }
+
+            const productImage = document.querySelector('.main-product-image').src;
+
+            const addonsTotalPrice = selectedAddons.reduce((total, addon) => total + addon.price, 0);
+            console.log('Selected addons:', selectedAddons);
+            console.log('Addons total price:', addonsTotalPrice);
+
+            const totalPrice = productPrice + addonsTotalPrice;
+
+            const existingProductIndex = cart.findIndex(item =>
+                item.id === productId &&
+                JSON.stringify(item.addons) === JSON.stringify(selectedAddons)
+            );
+
+            if (existingProductIndex !== -1) {
+                cart[existingProductIndex].quantity += quantity;
+            } else {
+                cart.push({
+                    id: productId,
+                    name: productName,
+                    basePrice: productPrice,
+                    totalPrice: totalPrice,
+                    image: productImage,
+                    quantity: quantity,
+                    addons: selectedAddons
+                });
+            }
+
+            updateCartCount();
+            updateCartDisplay();
+            showCartPopup();
+            closeProductDetails();
         }
 
         // SHOPPING CART
         const emptyCartMessage = document.getElementById('empty-cart-message');
         const cartItems = document.getElementById('cart-items');
 
-        // Vérifiez si le panier est vide
-        if (cart.length === 0) {
-            emptyCartMessage.style.display = 'flex';
-            emptyCartMessage.style.justifyContent = 'center';
-            emptyCartMessage.style.alignItems = 'center';
-        } else {
-            emptyCartMessage.style.display = 'none';
-            cart.forEach(item => {
-                const productDiv = document.createElement('div');
-                productDiv.textContent = `Produit : ${item.name}`;
-                cartItems.appendChild(productDiv);
-            });
+        function updateCartCount() {
+            cartCount = cart.reduce((total, item) => total + item.quantity, 0);
+            document.querySelector('.cart-btn span').textContent = cartCount;
         }
 
+        function formatPrice(price) {
+            const parsedPrice = parseFloat(price);
+            if (isNaN(parsedPrice)) {
+                console.error('Invalid price:', price);
+                return '0.00€';
+            }
+            return Number.isInteger(parsedPrice) ? `${parsedPrice}€` : `${parsedPrice.toFixed(2)}€`;
+        }
+
+
         function addToCartProduct(productId, event) {
-            const productElement = event.target.closest('.product'); // Find the product element
+            const productElement = event.target.closest('.product');
             if (!productElement) {
                 console.error('Product element not found.');
                 return;
             }
 
             const productName = productElement.querySelector('h4').textContent;
-            const productPrice = parseFloat(
-                productElement.querySelector('h3').textContent.replace(/[^0-9.-]+/g, '')
-            );
+            const priceText = productElement.querySelector('h3').textContent.trim();
+            console.log('Extracted price text:', priceText);
+
+            const productPrice = parseFloat(priceText.replace(/[^0-9.]/g, '').replace(',', '.'));
+            console.log('Parsed price:', productPrice);
+
+            if (isNaN(productPrice)) {
+                console.error('Invalid price format:', priceText);
+                return;
+            }
+
             const productImage = productElement.querySelector('img').src;
 
-            // Check if the product already exists in the cart
             const existingProduct = cart.find(item => item.id === productId);
             if (existingProduct) {
                 existingProduct.quantity += 1;
@@ -808,38 +1028,111 @@ get_header();
             showCartPopup();
         }
 
-        function updateCartCount() {
-            cartCount = cart.reduce((total, item) => total + item.quantity, 0);
-            document.querySelector('.cart-btn span').textContent = cartCount;
-        }
-
         function updateCartDisplay() {
             const cartItems = document.querySelector('.cart-items');
-            cartItems.innerHTML = ``;
+            if (!cartItems) return;
+
+            cartItems.innerHTML = '';
             let total = 0;
 
+            if (cart.length === 0) {
+                cartItems.innerHTML = '<div class="empty-cart-message">Your cart is empty</div>';
+                document.getElementById('cartTotal').textContent = '00.00€';
+                return;
+            }
+
             cart.forEach((item, index) => {
-                total += item.price * item.quantity;
+                let itemTotal;
+                if (item.basePrice !== undefined && item.addons) {
+                    const addonsTotalPrice = item.addons.reduce((sum, addon) => sum + addon.price, 0);
+                    itemTotal = (item.basePrice + addonsTotalPrice) * item.quantity;
+                } else if (item.price !== undefined) {
+                    itemTotal = item.price * item.quantity;
+                } else {
+                    console.error('Invalid item structure:', item);
+                    return;
+                }
+
+                total += itemTotal;
+
+                const addonsHtml = item.addons && item.addons.length > 0 ?
+                    `<div class="cart-item-addons">
+                            ${item.addons.map(addon => 
+                                `<span class="addon-tag"> ${addon.label} - (+${formatPrice(addon.price)})</span>`
+                            ).join('')}
+                    </div>` :
+                    '';
+
                 cartItems.innerHTML += `
-                <div class="cart-item">
-                    <img src="${item.image}" alt="${item.name}">
-                    <div class="cart-item-details">
-                        <h4>${item.name}</h4>
-                        <p class="cart-item-price">${(item.price * item.quantity).toFixed(2)}€</p>
+                    <div class="cart-item">
+                        <img src="${item.image}" alt="${item.name}">
+                        <div class="cart-item-details">
+                            <h4>${item.name}</h4>
+                            <p class="cart-item-price">${formatPrice(itemTotal)}</p>
+                            ${addonsHtml}
+                        </div>
+                        <div class="quantity-controls">
+                            <button onclick="updateQuantity(${index}, -1)">-</button>
+                            <input type="text" class="product-quantity" value="${item.quantity}" 
+                                min="1" onchange="changeQuantity(${index}, this.value)">
+                            <button onclick="updateQuantity(${index}, 1)">+</button>
+                        </div>
+                        <span class="remove-item" onclick="removeFromCart(${index})">&times;</span>
                     </div>
-                    <div class="quantity-controls">
-                        <button onclick="updateQuantity(${index}, -1)">-</button>
-                        <input type="text" class="product-quantity" value="${item.quantity}" min="0" onchange="changeQuantity(${index}, this.value)">
-                        <button onclick="updateQuantity(${index}, 1)">+</button>
-                    </div>
-                    <span class="remove-item" onclick="removeFromCart(${index})">&times;</span>
-                </div>
-            `;
+                `;
             });
 
-            // Update total price in the UI
-            document.getElementById('cartTotal').textContent = total.toFixed(2) + '€';
+            document.getElementById('cartTotal').textContent = formatPrice(total);
         }
+
+
+
+        // function updateCartDisplay() {
+        //     const cartItems = document.querySelector('.cart-items');
+        //     if (!cartItems) return;
+
+        //     cartItems.innerHTML = '';
+        //     let total = 0;
+
+        //     if (cart.length === 0) {
+        //         cartItems.innerHTML = '<div class="empty-cart-message">Your cart is empty</div>';
+        //         document.getElementById('cartTotal').textContent = '0.00€';
+        //         return;
+        //     }
+
+        //     cart.forEach((item, index) => {
+        //         const itemTotal = item.totalPrice * item.quantity;
+        //         total += itemTotal;
+
+        //         const addonsHtml = item.addons && item.addons.length > 0 ?
+        //             `<div class="cart-item-addons">
+        //                 ${item.addons.map(addon => 
+        //                     `<span class="addon-tag">${addon.label} (+${addon.price}€)</span>`
+        //                 ).join('')}
+        //             </div>` :
+        //             '';
+
+        //             cartItems.innerHTML += `
+        //                 <div class="cart-item">
+        //                     <img src="${item.image}" alt="${item.name}">
+        //                     <div class="cart-item-details">
+        //                         <h4>${item.name}</h4>
+        //                         <p class="cart-item-price">${(item.totalPrice * item.quantity).toFixed(2)}€</p>
+        //                         ${addonsHtml}
+        //                     </div>
+        //                     <div class="quantity-controls">
+        //                         <button onclick="updateQuantity(${index}, -1)">-</button>
+        //                         <input type="text" class="product-quantity" value="${item.quantity}" 
+        //                             min="1" onchange="changeQuantity(${index}, this.value)">
+        //                         <button onclick="updateQuantity(${index}, 1)">+</button>
+        //                     </div>
+        //                     <span class="remove-item" onclick="removeFromCart(${index})">&times;</span>
+        //                 </div>
+        //             `;
+        //         });
+
+        //     document.getElementById('cartTotal').textContent = total.toFixed(2) + '€';
+        // }
 
         function updateQuantity(index, change) {
             const product = cart[index];
@@ -859,21 +1152,21 @@ get_header();
             const product = cart[index];
             if (!product) return;
 
-            const quantity = parseInt(newQuantity, 10); // Parse input
+            const quantity = parseInt(newQuantity, 10);
             if (isNaN(quantity) || quantity < 1) {
-                product.quantity = 1; // Default to 1 if invalid
+                product.quantity = 1;
             } else {
-                product.quantity = quantity; // Update quantity
+                product.quantity = quantity;
             }
 
-            updateCartCount(); // Refresh count
-            updateCartDisplay(); // Refresh cart
+            updateCartCount();
+            updateCartDisplay();
         }
 
         function removeFromCart(index) {
-            cart.splice(index, 1); // Remove item from cart array
-            updateCartCount(); // Refresh count
-            updateCartDisplay(); // Refresh cart
+            cart.splice(index, 1);
+            updateCartCount();
+            updateCartDisplay();
         }
 
         function showCartPopup() {
@@ -884,14 +1177,12 @@ get_header();
             document.getElementById('cartPopup').style.display = 'none';
         }
 
-        // Close the cart when clicking outside the popup
         window.addEventListener('click', (e) => {
             if (e.target === document.getElementById('cartPopup')) {
                 hideCartPopup();
             }
         });
 
-        // Event listeners for cart interactions
         document.querySelector('.cart-btn').addEventListener('click', showCartPopup);
         document.querySelector('.close-cart').addEventListener('click', hideCartPopup);
     </script>

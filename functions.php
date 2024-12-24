@@ -346,9 +346,13 @@ function get_product_addons($data)
 
     return $addons;
 }
-add_action('rest_api_init', function() {  
-    header("Access-Control-Allow-Origin: *");  
-    header("Access-Control-Allow-Methods: GET, POST, OPTIONS, PUT, DELETE");  
-    header("Access-Control-Allow-Credentials: true");  
-    header("Access-Control-Allow-Headers: Authorization, Content-Type");  
-});
+
+
+function enqueue_product_scripts() {
+    wp_enqueue_script('product-details', get_template_directory_uri() . '/js/product-details.js', array('jquery'), '1.0', true);
+    wp_localize_script('product-details', 'productAjax', array(
+        'ajaxurl' => admin_url('admin-ajax.php'),
+        'nonce' => wp_create_nonce('product_details_nonce')
+    ));
+}
+add_action('wp_enqueue_scripts', 'enqueue_product_scripts');
